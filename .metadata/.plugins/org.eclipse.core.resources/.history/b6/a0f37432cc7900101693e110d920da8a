@@ -1,0 +1,74 @@
+package com.example.samuraitravel.security;
+
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+
+@Configuration
+@EnableWebSecurity
+public class WebSecurityConfig {
+
+    // Mvc用のmatcherビルダー（Spring Security 6 推奨）
+    @Bean
+    MvcRequestMatcher.Builder mvc(HandlerMappingIntrospector introspector) {
+        return new MvcRequestMatcher.Builder(introspector);
+    }
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                // 1) 静的リソースは常に許可
+                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                .requestMatchers(
+                    mvc.pattern("/css/**"),
+                    mvc.pattern("/js/**"),
+                    mvc.pattern("/images/**")
+                ).permitAll()
+
+                // 2) 一般公開ページ
+                .requestMatchers(
+                    mvc.pattern("/"),
+                    mvc.pattern("/houses"),
+                    mvc.pattern("/houses/**"),
+                    mvc.pattern("/auth/**"),
+                    mvc.pattern("/login"),
+                    mvc.pattern("/signup"),
+                    mvc.pattern("/verify"),
+                    mvc.pattern("/reviews/house/**") // ★ レビュー一覧は公開
+                ).permitAll()
+
+                // 3) 管理画面
+                .requestMatchers(mvc.pattern("/admin/**")).hasRole("ADMIN")
+
+                // 4) それ以外は要ログイン（← anyRequestは必ず最後！）
+                .anyRequest().authenticated()
+            )
+
+            // ログイン設定
+            .formLogin(login -> login
+                .loginPage("/login").permitAll()
+                .defaultSuccessUrl("/", true)
+            )
+
+            // ログアウト設定
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/")
+            )
+
+            // CSRF設定（例：StripeのWebhookなど外部POSTは除外）
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers(
+                    mvc.pattern("/webhook/stripe")
+                )
+            );
+
+        return http.build();
+    }
+}
