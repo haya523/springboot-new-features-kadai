@@ -144,21 +144,21 @@
               </div>
             </div>
 
-            <!-- ===== レビュー ===== -->
+			<!-- ===== レビュー ===== -->
 			<section class="mt-4">
 			  <h2>レビュー</h2>
 
 			  <!-- 0件 -->
 			  <div th:if="${reviews == null or #lists.isEmpty(reviews)}">レビューはありません。</div>
 
-			  <!-- 先頭いくつか（最大3件など） -->
+			  <!-- 先頭表示（Controller側で3件） -->
 			  <ul th:if="${reviews != null}">
 			    <li th:each="r : ${reviews}">
 			      <span th:utext="${'&#9733;'.repeat(r.rating)}"></span>
 			      <span th:utext="${'&#9734;'.repeat(5 - r.rating)}"></span>
 			       ：<span th:text="${r.comment}">コメント</span>
 
-			      <!-- 自分のレビュー：編集/削除（リスト内にも残す） -->
+			      <!-- 自分のレビュー行なら編集/削除 -->
 			      <span th:if="${myReview != null and myReview.id == r.id}" style="margin-left:.5rem">
 			        <a th:href="@{/reviews/{id}/edit(id=${r.id})}">編集</a>
 			        <form th:action="@{/reviews/{id}/delete(id=${r.id})}" method="post" style="display:inline">
@@ -169,10 +169,12 @@
 			    </li>
 			  </ul>
 
-			  <!-- 一覧へは常時 -->
-			  <a th:href="@{/reviews/house/{hid}(hid=${house.id})}">他のレビューも見る</a>
+			  <!-- ▼ 一覧へのリンクは常に表示 -->
+			  <div class="mb-2">
+			    <a th:href="@{/reviews/house/{hid}(hid=${house.id})}">他のレビューも見る</a>
+			  </div>
 
-			  <!-- ★ 自分のレビューがあるなら常に編集/削除導線を別枠で出す -->
+			  <!-- ▼ ログイン済みで自分のレビューがある場合：編集/削除導線 -->
 			  <div sec:authorize="isAuthenticated()" th:if="${myReview != null}" class="mt-2">
 			    <a th:href="@{/reviews/{id}/edit(id=${myReview.id})}">自分のレビューを編集</a>
 			    <form th:action="@{/reviews/{id}/delete(id=${myReview.id})}" method="post" style="display:inline">
@@ -181,14 +183,20 @@
 			    </form>
 			  </div>
 
-			  <!-- 投稿ボタン：ログイン＆未投稿時のみ -->
-			  <div sec:authorize="isAuthenticated()" th:if="${myReview == null}">
-			    <a th:href="@{/reviews/house/{hid}/new(hid=${house.id})}">レビューを投稿する</a>
+			  <!-- ▼ ログイン済みでまだレビューしていない場合 -->
+			  <div sec:authorize="isAuthenticated()" th:if="${myReview == null}" class="mt-2">
+			    <a th:href="@{/reviews/house/{hid}/new(hid=${house.id})}"
+			       class="btn text-white shadow-sm samuraitravel-btn">
+			      レビューを投稿する
+			    </a>
 			  </div>
 
-			  <!-- 未ログイン案内：ログイン後に民宿詳細へ戻すため redirect を付与 -->
-			  <div sec:authorize="isAnonymous()">
-			    <a th:href="@{/login(redirect=${'/houses/' + house.id})}">ログインしてレビューを投稿</a>
+			  <!-- ▼ 未ログイン時だけ表示：必ず「他のレビューを見る」の下に配置 -->
+			  <div sec:authorize="!isAuthenticated()" class="mt-2">
+			    <a th:href="@{/login(redirect=${'/houses/' + house.id})}"
+			       class="btn text-white shadow-sm samuraitravel-btn">
+			      ログインしてレビューを投稿
+			    </a>
 			  </div>
 			</section>
 

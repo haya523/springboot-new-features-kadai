@@ -29,7 +29,6 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public Page<Review> getReviewsForHouse(Integer houseId, int page, int size) {
-        // createdAt があるなら Sort.by("createdAt").descending() にしてもOK
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         return reviewRepository.findByHouse_Id(houseId, pageable);
     }
@@ -40,7 +39,6 @@ public class ReviewService {
     }
 
     public Review create(Integer houseId, Integer userId, ReviewForm form) {
-        // 二重投稿防止
         reviewRepository.findByHouse_IdAndUser_Id(houseId, userId)
                 .ifPresent(r -> { throw new IllegalStateException("この民宿には既にレビュー済みです"); });
 
@@ -70,7 +68,7 @@ public class ReviewService {
         return reviewRepository.save(r);
     }
 
-    /** 戻り値に houseId を返すとリダイレクトに便利 */
+    /** houseId を返すとリダイレクトに便利 */
     public Integer delete(Integer id, Integer userId) {
         Review r = getOwn(id, userId);
         Integer houseId = r.getHouse().getId();

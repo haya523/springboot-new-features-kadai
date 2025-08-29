@@ -32,31 +32,32 @@ public class UserDetailsImpl implements UserDetails {
         return user.getEmail();
     }
     
+    // ★画面表示用の名前を返す（追加）
+    public String getDisplayName() {
+        return user.getName();  // ← usersテーブルの name カラムを使う
+    }
+    
     // ロールのコレクションを返す
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
     
-    // アカウントが期限切れでなければtrueを返す
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
     
-    // ユーザーがロックされていなければtrueを返す
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }    
     
-    // ユーザーのパスワードが期限切れでなければtrueを返す
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
     
-    // ユーザーが有効であればtrueを返す
     @Override
     public boolean isEnabled() {
         return user.getEnabled();

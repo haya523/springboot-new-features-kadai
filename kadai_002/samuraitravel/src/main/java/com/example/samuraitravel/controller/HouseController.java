@@ -79,27 +79,27 @@ public class HouseController {
     @GetMapping("/{id}")
     public String show(@PathVariable Integer id,
                        Model model,
-                       // ★ ログインユーザーを受け取る（未ログインなら null）
                        @AuthenticationPrincipal UserDetailsImpl login) {
-        House house = houseRepository.getReferenceById(id);
 
+        House house = houseRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("指定の民宿が見つかりません: id=" + id));
         model.addAttribute("house", house);
         model.addAttribute("reservationInputForm", new ReservationInputForm());
 
-        // ★ レビューを3件だけ（民宿詳細にチラ見せ）
+        // レビューを3件だけ
         Page<Review> page = reviewService.getReviewsForHouse(id, 0, 3);
         model.addAttribute("reviews", page.getContent());
 
-        // ★ 自分のレビュー（ログイン時のみ）
+        // 自分のレビュー（ログイン時のみ）
         if (login != null) {
             reviewService.getUserReviewForHouse(id, login.getUser().getId())
-                         .ifPresent(r -> model.addAttribute("myReview", r));
+                    .ifPresent(r -> model.addAttribute("myReview", r));
         } else {
-            model.addAttribute("myReview", null); // ← 未ログイン時は null を明示
+            model.addAttribute("myReview", null);
         }
 
-        // ★ ここが必須
         return "houses/show";
     }
-
+    
 }
+

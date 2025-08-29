@@ -176,8 +176,10 @@
 											<img th:if="${house.getImageName()}"
 											     th:src="@{/storage/__${house.getImageName()}__}"
 											     class="card-img-top samuraitravel-horizontal-card-image" alt="店舗画像">
+
 											<img th:unless="${house.getImageName()}" th:src="@{/images/noImage.png}"
 											     class="card-img-top samuraitravel-horizontal-card-image" alt="NO IMAGE">
+	
 										</div>
 										<div class="col-md-8">
 											<div class="card-body">

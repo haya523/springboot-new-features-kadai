@@ -116,6 +116,26 @@ public class ReviewController {
         ra.addFlashAttribute("successMessage", "レビューを削除しました。");
         return "redirect:/reviews/house/" + houseId;
     }
-   
+    @GetMapping("/reviews/house/{houseId}")
+    public String listByHouse(@PathVariable Integer houseId,
+                              @RequestParam(defaultValue = "0") int page,
+                              Model model,
+                              @AuthenticationPrincipal UserDetailsImpl login) {
+
+        Page<Review> reviews = reviewService.getReviewsForHouse(houseId, page, 10);
+        model.addAttribute("reviews", reviews);
+        model.addAttribute("houseId", houseId);
+
+        Integer myReviewId = null;
+        if (login != null) {
+            myReviewId = reviewService.findMyReview(houseId, login.getUser().getId())
+                                      .map(Review::getId)
+                                      .orElse(null);
+        }
+        model.addAttribute("myReviewId", myReviewId);
+
+        return "reviews/index"; // 実際のテンプレート名に合わせて
+    }
+
 
 }

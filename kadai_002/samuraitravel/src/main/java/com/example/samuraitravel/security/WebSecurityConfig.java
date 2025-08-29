@@ -1,84 +1,73 @@
 package com.example.samuraitravel.security;
 
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
-@EnableWebSecurity
+@RequiredArgsConstructor
 public class WebSecurityConfig {
 
-    // パスワードは BCrypt で照合（DB も BCrypt ハッシュで保存されていること）
+    private final UserDetailsServiceImpl userDetailsService;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Spring Security 6 推奨の MVC マッチャ
     @Bean
-    MvcRequestMatcher.Builder mvc(HandlerMappingIntrospector introspector) {
-        return new MvcRequestMatcher.Builder(introspector);
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider p = new DaoAuthenticationProvider();
+        p.setUserDetailsService(userDetailsService);
+        p.setPasswordEncoder(passwordEncoder());
+        return p;
+    }
+
+ // src/main/java/com/example/samuraitravel/security/WebSecurityConfig.java
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler() {
+        return (request, response, authentication) -> {
+            String target = request.getParameter("redirect");
+            if (target != null && !target.isBlank()) {
+                response.sendRedirect(target);
+            } else {
+                new SavedRequestAwareAuthenticationSuccessHandler()
+                        .onAuthenticationSuccess(request, response, authentication);
+            }
+        };
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(auth -> auth
-                // 静的ファイルは常に許可
-                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                .requestMatchers(
-                    mvc.pattern("/css/**"),
-                    mvc.pattern("/js/**"),
-                    mvc.pattern("/images/**"),
-                    mvc.pattern("/storage/**")
-                ).permitAll()
-
-                // 誰でも見られるページ
-                .requestMatchers(
-                    mvc.pattern("/"),
-                    mvc.pattern("/houses"),
-                    mvc.pattern("/houses/**"),
-                    mvc.pattern("/auth/**"),
-                    mvc.pattern("/login"),
-                    mvc.pattern("/signup"),
-                    mvc.pattern("/verify"),
-                    mvc.pattern("/reviews/house/**")
-                ).permitAll()
-
-                // 管理画面
-                .requestMatchers(mvc.pattern("/admin/**")).hasRole("ADMIN")
-
-                // それ以外はログイン必須
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers("/css/**","/js/**","/images/**","/storage/**").permitAll()
+                .requestMatchers("/","/houses/**","/signup","/verify","/login","/error").permitAll()
                 .anyRequest().authenticated()
             )
-
-            // ログイン設定（フォームの input 名と合わせる）
-            .formLogin(login -> login
-                .loginPage("/login").permitAll()
-                .loginProcessingUrl("/login")          // POST 先
-                .usernameParameter("email")            // ← フォームの name と一致
-                .passwordParameter("password")         // ← 同上
-                .defaultSuccessUrl("/", true)
+            .formLogin(form -> form
+                .loginPage("/login")
+                .usernameParameter("email")
+                .passwordParameter("password")
+                .successHandler(authenticationSuccessHandler())   // ← これがポイント
+                .permitAll()
             )
-
-            // ログアウト
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/")
-            )
-
-            // 必要に応じて CSRF 除外
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers(mvc.pattern("/webhook/stripe"))
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
             );
-
         return http.build();
     }
 }
