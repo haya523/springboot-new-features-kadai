@@ -7,7 +7,7 @@
 <th:block th:fragment="meta">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title th:remove="tag">SAMURAI TRAVEL</title>
+  
 </th:block>
 
 <!-- ========== styles（CDNのBootstrap → あなたのstyle.css） ========== -->
@@ -20,32 +20,25 @@
   <link th:href="@{/css/style.css}" rel="stylesheet">
 </th:block>
 
-<!-- ========== header（構造はシンプル・ログアウトはPOST+CSRF） ========== -->
+<!-- ========== header（これ1つだけ） ========== -->
 <div th:fragment="header">
   <header class="bg-light border-bottom mb-3">
     <div class="container d-flex justify-content-between align-items-center py-2">
-      <!-- ロゴ（リンク先はホーム→一覧に飛ぶ想定） -->
-      <a class="navbar-brand m-0" th:href="@{/}">
-        SAMURAI TRAVEL
-      </a>
+      <!-- ブランド -->
+      <a class="navbar-brand m-0" th:href="@{/}">SAMURAI TRAVEL</a>
 
+      <!-- 右メニュー -->
       <nav class="d-flex gap-3 align-items-center">
         <a class="nav-link p-0" th:href="@{/houses}">民宿一覧</a>
 
-        <!-- 未ログイン時 -->
+        <!-- 未ログイン -->
         <a class="nav-link p-0" sec:authorize="!isAuthenticated()" th:href="@{/login}">ログイン</a>
         <a class="nav-link p-0" sec:authorize="!isAuthenticated()" th:href="@{/signup}">会員登録</a>
 
-        <!-- ログイン時 -->
-        <a class="nav-link p-0" sec:authorize="isAuthenticated()" th:href="@{/user}">
-          会員情報
-        </a>
-
-        <!-- 名前を表示（UserDetailsImpl.displayName を利用） -->
+        <!-- ログイン中：表示名＋ログアウト -->
         <span class="text-muted" sec:authorize="isAuthenticated()"
-              th:text="${#authentication.principal.displayName}">ユーザー名</span>
+              th:text="${#authentication?.principal?.displayName}">ユーザー名</span>
 
-        <!-- ログアウト: 見た目リンク + 実体はPOST -->
         <a class="nav-link p-0" href="#" sec:authorize="isAuthenticated()"
            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
           ログアウト
@@ -57,6 +50,7 @@
     </div>
   </header>
 </div>
+
 
 <!-- ========== footer ========== -->
 <div th:fragment="footer">

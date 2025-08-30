@@ -6,10 +6,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+// ★ 追加インポート
+import org.springframework.web.server.ResponseStatusException;
 
+// ★ 追加インポート
+import com.example.samuraitravel.entity.House;
 import com.example.samuraitravel.entity.Review;
 import com.example.samuraitravel.form.ReviewForm;
 import com.example.samuraitravel.repository.HouseRepository;
@@ -74,5 +79,12 @@ public class ReviewService {
         Integer houseId = r.getHouse().getId();
         reviewRepository.delete(r);
         return houseId;
+    }
+
+    // ★ ここが今回の追加：存在しない場合は 404 にする House 取得
+    @Transactional(readOnly = true)
+    public House getHouseOrThrow(Integer houseId) {
+        return houseRepository.findById(houseId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 }

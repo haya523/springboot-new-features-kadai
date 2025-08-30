@@ -88,17 +88,20 @@ INSERT IGNORE INTO reservations (id, house_id, user_id, checkin_date, checkout_d
 INSERT IGNORE INTO reservations (id, house_id, user_id, checkin_date, checkout_date, number_of_people, amount) VALUES (9, 9, 1, '2023-04-01', '2023-04-02', 5, 9000);
 INSERT IGNORE INTO reservations (id, house_id, user_id, checkin_date, checkout_date, number_of_people, amount) VALUES (10, 10, 1, '2023-04-01', '2023-04-02', 6, 10000);
 INSERT IGNORE INTO reservations (id, house_id, user_id, checkin_date, checkout_date, number_of_people, amount) VALUES (11, 11, 1, '2023-04-01', '2023-04-02', 2, 6000);
---test deta
+
+-- test data（reviews は user_id を 1〜5 のみ使用）
+DELETE FROM reviews;
+
 INSERT INTO reviews (house_id, user_id, rating, comment, created_at) VALUES
 (1, 1, 5, '素晴らしい滞在でした。また利用したいです。', NOW()),
 (1, 2, 4, '部屋が綺麗で、快適に過ごせました。', NOW()),
 (1, 3, 4, 'アクセスが良く、観光に最適でした。', NOW()),
 (1, 4, 3, '駅から近く、便利でした。', NOW()),
 (1, 5, 4, 'スタッフが親切で気持ちよく滞在できました。', NOW()),
-(1, 6, 5, 'コスパが良かったです。', NOW()),
-(1, 7, 3, '静かな環境でゆっくり休めました。', NOW()),
-(1, 8, 4, '施設内の設備が充実していました。', NOW()),
-(1, 9, 4, '清潔感があり快適でした。', NOW()),
-(1,10, 5, 'Wi-Fiが安定して助かりました。', NOW()),
-(1,11, 4, '周辺の飲食店が多く楽しめました。', NOW()),
-(1,12, 4, '景色が良くリフレッシュできました。', NOW());
+(1, 1, 5, 'コスパが良かったです。', NOW()),
+(1, 2, 3, '静かな環境でゆっくり休めました。', NOW()),
+(1, 3, 4, '施設内の設備が充実していました。', NOW()),
+(1, 4, 4, '清潔感があり快適でした。', NOW()),
+(1, 5, 5, 'Wi-Fiが安定して助かりました。', NOW()),
+(1, 1, 4, '周辺の飲食店が多く楽しめました。', NOW()),
+(1, 2, 4, '景色が良くリフレッシュできました。', NOW());

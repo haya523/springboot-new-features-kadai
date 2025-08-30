@@ -30,19 +30,36 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    // 民宿ごとのレビュー一覧
+    /** 民宿ごとのレビュー一覧（これ1本だけにする） */
     @GetMapping("/house/{houseId}")
-    public String list(@PathVariable Integer houseId,
-                       @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "10") int size,
-                       Model model) {
-        Page<Review> reviews = reviewService.getReviewsForHouse(houseId, page, size);
-        model.addAttribute("reviews", reviews);
-        model.addAttribute("houseId", houseId);
+    public String listByHouse(@PathVariable Integer houseId,
+                              @RequestParam(defaultValue = "0") int page,
+                              @RequestParam(defaultValue = "10") int size,
+                              Model model,
+                              @AuthenticationPrincipal UserDetailsImpl login) {
+
+        // 画面で使うため House を必ず渡す
+        var house = reviewService.getHouseOrThrow(houseId);
+
+        // 一覧（ページング）
+        Page<Review> reviewsPage = reviewService.getReviewsForHouse(houseId, page, size);
+
+        // 自分のレビューID（ログイン時のみ）
+        Integer myReviewId = null;
+        if (login != null) {
+            myReviewId = reviewService.findMyReview(houseId, login.getUser().getId())
+                                      .map(Review::getId)
+                                      .orElse(null);
+        }
+
+        model.addAttribute("house", house);
+        model.addAttribute("reviewsPage", reviewsPage);
+        model.addAttribute("myReviewId", myReviewId);
+
         return "reviews/index";
     }
 
-    // 新規投稿フォーム（要ログイン）
+    /** 新規投稿フォーム（要ログイン） */
     @GetMapping("/house/{houseId}/new")
     public String newForm(@PathVariable Integer houseId,
                           @AuthenticationPrincipal UserDetailsImpl principal,
@@ -58,7 +75,7 @@ public class ReviewController {
                 });
     }
 
-    // 作成（要ログイン）  ※クラスに /reviews が付くのでパスは /house/{houseId}
+    /** 作成（要ログイン） */
     @PostMapping("/house/{houseId}")
     public String create(@PathVariable Integer houseId,
                          @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -75,7 +92,7 @@ public class ReviewController {
         return "redirect:/houses/" + houseId;
     }
 
-    // 編集フォーム（要ログイン）
+    /** 編集フォーム（要ログイン） */
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Integer id,
                        @AuthenticationPrincipal UserDetailsImpl principal,
@@ -90,7 +107,7 @@ public class ReviewController {
         return "reviews/edit";
     }
 
-    // 更新（要ログイン）
+    /** 更新（要ログイン） */
     @PostMapping("/{id}/update")
     public String update(@PathVariable Integer id,
                          @Valid @ModelAttribute ReviewForm reviewForm,
@@ -107,7 +124,7 @@ public class ReviewController {
         return "redirect:/reviews/house/" + updated.getHouse().getId();
     }
 
-    // 削除（要ログイン）
+    /** 削除（要ログイン） */
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Integer id,
                          @AuthenticationPrincipal UserDetailsImpl principal,
@@ -116,26 +133,4 @@ public class ReviewController {
         ra.addFlashAttribute("successMessage", "レビューを削除しました。");
         return "redirect:/reviews/house/" + houseId;
     }
-    @GetMapping("/reviews/house/{houseId}")
-    public String listByHouse(@PathVariable Integer houseId,
-                              @RequestParam(defaultValue = "0") int page,
-                              Model model,
-                              @AuthenticationPrincipal UserDetailsImpl login) {
-
-        Page<Review> reviews = reviewService.getReviewsForHouse(houseId, page, 10);
-        model.addAttribute("reviews", reviews);
-        model.addAttribute("houseId", houseId);
-
-        Integer myReviewId = null;
-        if (login != null) {
-            myReviewId = reviewService.findMyReview(houseId, login.getUser().getId())
-                                      .map(Review::getId)
-                                      .orElse(null);
-        }
-        model.addAttribute("myReviewId", myReviewId);
-
-        return "reviews/index"; // 実際のテンプレート名に合わせて
-    }
-
-
 }
