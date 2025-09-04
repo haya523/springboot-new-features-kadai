@@ -17,31 +17,39 @@ import com.example.samuraitravel.entity.Review;
 import com.example.samuraitravel.form.ReservationInputForm;
 import com.example.samuraitravel.repository.HouseRepository;
 import com.example.samuraitravel.security.UserDetailsImpl;
+import com.example.samuraitravel.service.FavoriteService;
 import com.example.samuraitravel.service.ReviewService;
 
 @Controller
 @RequestMapping("/houses")
 public class HouseController {
+
     private final HouseRepository houseRepository;
     private final ReviewService reviewService;
+    private final FavoriteService favoriteService;
 
-    public HouseController(HouseRepository houseRepository, ReviewService reviewService) {
+    public HouseController(HouseRepository houseRepository,
+                           ReviewService reviewService,
+                           FavoriteService favoriteService) {
         this.houseRepository = houseRepository;
         this.reviewService = reviewService;
+        this.favoriteService = favoriteService;
     }
 
+    // 民宿一覧（既存のまま。中身はあなたの実装に合わせてOK）
     @GetMapping
     public String index(@RequestParam(required = false) String keyword,
                         @RequestParam(required = false) String area,
                         @RequestParam(required = false) Integer price,
                         @RequestParam(required = false) String order,
-                        @PageableDefault(page = 0, size = 10, sort = "id",
-                                direction = Direction.ASC) Pageable pageable,
+                        @PageableDefault(page = 0, size = 10, sort = "id", direction = Direction.ASC) Pageable pageable,
                         Model model) {
-        // 既存ロジックそのまま（省略）
+        // ここは既存の実装を使ってください（検索や並び替えなど）
+        // model.addAttribute(...) を必要に応じて設定
         return "houses/index";
     }
 
+    // 民宿詳細
     @GetMapping("/{id}")
     public String show(@PathVariable Integer id,
                        Model model,
@@ -49,14 +57,14 @@ public class HouseController {
 
         House house = houseRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("指定の民宿が見つかりません: id=" + id));
+
         model.addAttribute("house", house);
         model.addAttribute("reservationInputForm", new ReservationInputForm());
 
-        // 最新3件だけ表示
+        // 最新3件レビュー（あなたのサービス実装に合わせて）
         Page<Review> page = reviewService.getReviewsForHouse(id, 0, 3);
         model.addAttribute("reviews", page.getContent());
 
-        // ★ 総件数（>3 なら「他のレビューも見る」を出す）
         long reviewsTotal = reviewService.countForHouse(id);
         model.addAttribute("reviewsTotal", reviewsTotal);
 
@@ -64,8 +72,13 @@ public class HouseController {
         if (login != null) {
             reviewService.getUserReviewForHouse(id, login.getUser().getId())
                     .ifPresent(r -> model.addAttribute("myReview", r));
+
+            // ★ お気に入り状態（ログイン時のみ判定）
+            boolean favorited = favoriteService.isFavorited(login.getUser().getId(), id);
+            model.addAttribute("favorited", favorited);
         } else {
             model.addAttribute("myReview", null);
+            model.addAttribute("favorited", false);
         }
 
         return "houses/show";
