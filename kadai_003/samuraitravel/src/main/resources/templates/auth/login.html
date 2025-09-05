@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <div th:replace="~{fragment :: meta}"></div>
+  <div th:replace="~{fragment :: styles}"></div>
+  <title>ログイン</title>
+</head>
+<body>
+  <div class="samuraitravel-wrapper">
+    <div th:replace="~{fragment :: header}"></div>
+
+    <main>
+      <div class="container pt-4 pb-5 samuraitravel-container">
+        <div class="row justify-content-center">
+          <div class="col-xl-3 col-lg-4 col-md-5 col-sm-7">
+            <h1 class="mb-4 text-center">ログイン</h1>
+
+            <!-- 認証失敗時のメッセージ（/login?error で来る） -->
+            <div th:if="${param.error}" class="alert alert-danger">
+              メールアドレスまたはパスワードが正しくありません。
+            </div>
+
+            <!-- POST /login に送る。input の name は Security 設定と一致（email/password） -->
+            <form th:action="@{/login}" method="post">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+			  <input type="hidden" name="redirect" th:value="${param.redirect}"/>
+			  
+             <div class="form-group mb-3">
+                <input type="text" class="form-control" name="email"
+                       autocomplete="email" placeholder="メールアドレス" autofocus>
+              </div>
+
+              <div class="form-group mb-3">
+                <input type="password" class="form-control" name="password"
+                       autocomplete="current-password" placeholder="パスワード">
+              </div>
+
+              <div class="form-group d-flex justify-content-center my-4">
+                <button type="submit" class="btn text-white shadow-sm w-100 samuraitravel-btn">ログイン</button>
+              </div>
+            </form>
+
+            <div class="text-center">
+              <a th:href="@{/signup}">会員登録</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div th:replace="~{fragment :: footer}"></div>
+  </div>
+
+  <div th:replace="~{fragment :: scripts}"></div>
+</body>
+</html>
