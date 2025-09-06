@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>レビュー投稿</title></head>
+<body>
+<h1>レビュー投稿</h1>
+
+<form th:action="@{|/reviews/house/${houseId}|}" method="post" th:object="${reviewForm}">
+  <label>評価:
+    <select th:field="*{rating}">
+      <option th:each="i : ${#numbers.sequence(1,5)}" th:value="${i}" th:text="${i}"></option>
+    </select>
+  </label>
+  <div th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}">error</div>
+
+  <label>コメント:
+    <textarea th:field="*{comment}" rows="5"></textarea>
+  </label>
+  <div th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}">error</div>
+
+  <button type="submit">投稿する</button>
+</form>
+
+</body>
+</html>

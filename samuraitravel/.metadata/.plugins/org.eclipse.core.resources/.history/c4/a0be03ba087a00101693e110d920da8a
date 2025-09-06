@@ -1,0 +1,23 @@
+spring.datasource.url=jdbc:mysql://${MYSQL_HOST:localhost}:3306/samuraitravel_db
+spring.datasource.username=root
+spring.datasource.password=hayato0523
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.sql.init.encoding=utf-8
+spring.sql.init.mode=always
+
+spring.mail.host=sandbox.smtp.mailtrap.io
+spring.mail.port=2525
+spring.mail.username=319af481c97117
+spring.mail.password=d9137d2729acab
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+stripe.api-key=Stripeのシークレットキー
+stripe.webhook-secret=Stripeの署名シークレット
+
+spring.servlet.multipart.max-file-size=5MB
+
+# --- 認証の詳細ログを出す ---
+logging.level.org.springframework.security=DEBUG
+logging.level.org.springframework.security.web.authentication=DEBUG
+logging.level.org.springframework.security.authentication=DEBUG
